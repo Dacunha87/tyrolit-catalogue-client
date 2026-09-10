@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogue Client TYROLIT</title>
+<style>
+  :root {
+    --tyrolit-blue: #003064;
+    --tyrolit-red: #E2001A;
+    --bg: #f4f6f8;
+    --card-bg: #ffffff;
+    --text: #1a1a1a;
+    --muted: #666;
+    --border: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: var(--tyrolit-blue);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 {
+    font-size: 20px;
+    margin: 0;
+  }
+  header .subtitle {
+    font-size: 13px;
+    opacity: 0.85;
+  }
+  .client-input {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+    min-width: 220px;
+  }
+  main {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: flex-start;
+  }
+  .panel {
+    background: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+  }
+  .search-panel {
+    flex: 1.3;
+    min-width: 340px;
+  }
+  .cart-panel {
+    flex: 1;
+    min-width: 300px;
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+  }
+  .search-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .search-box input {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+  }
+  .search-box input:focus {
+    outline: none;
+    border-color: var(--tyrolit-blue);
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  .product-card {
+    display: flex;
+    gap: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    align-items: center;
+  }
+  .product-card img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    background: #f0f0f0;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .product-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .product-ref {
+    font-weight: 700;
+    color: var(--tyrolit-blue);
+    font-size: 13px;
+  }
+  .product-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 2px 0;
+  }
+  .product-sub {
+    font-size: 12px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .add-btn {
+    background: var(--tyrolit-red);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .add-btn:hover { opacity: 0.88; }
+  .add-btn:disabled {
+    background: #bbb;
+    cursor: default;
+  }
+  .cart-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .cart-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .cart-item img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    background: #f0f0f0;
+    border-radius: 6px;
+  }
+  .cart-item .info {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+  }
+  .cart-item .info .ref {
+    font-weight: 700;
+    color: var(--tyrolit-blue);
+  }
+  .cart-item .info .title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .remove-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .remove-btn:hover { background: #fee; color: var(--tyrolit-red); border-color: var(--tyrolit-red); }
+  .empty-msg {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 24px 0;
+  }
+  .export-btn {
+    background: var(--tyrolit-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+  }
+  .export-btn:hover { opacity: 0.92; }
+  .export-btn:disabled { background: #bbb; cursor: default; }
+  .count-badge {
+    background: var(--tyrolit-red);
+    color: white;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .clear-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .status-msg {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    text-align: center;
+  }
+  #printArea { display: none; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea { display: block; position: absolute; top: 0; left: 0; width: 100%; }
+    .print-page {
+      page-break-after: always;
+      padding: 20mm 15mm;
+    }
+    .print-header {
+      border-bottom: 3px solid #003064;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .print-header h1 { color: #003064; font-size: 22px; margin: 0; }
+    .print-product {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .print-product img {
+      width: 220px;
+      height: 220px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+    }
+    .print-product .details { flex: 1; }
+    .print-ref {
+      font-weight: 700;
+      color: #003064;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .print-title { font-size: 20px; font-weight: 700; margin: 4px 0; }
+    .print-sub { font-size: 14px; color: #555; margin-bottom: 12px; }
+    .print-desc { font-size: 13px; line-height: 1.6; margin-bottom: 10px; }
+    .print-meta { font-size: 12px; color: #666; margin-top: 10px; }
+    .cover-page {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 240mm;
+      text-align: center;
+    }
+    .cover-page h1 { color: #003064; font-size: 36px; margin-bottom: 8px; }
+    .cover-page .client-name { font-size: 26px; font-weight: 700; margin: 24px 0; }
+    .cover-page .date { color: #666; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Catalogue Client — TYROLIT</h1>
+    <div class="subtitle">Construction &amp; préparation de sols — Suisse romande</div>
+  </div>
+  <input type="text" id="clientName" class="client-input" placeholder="Nom du client...">
+</header>
+
+<main>
+  <section class="panel search-panel">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Rechercher par référence, désignation ou mot-clé..." autofocus>
+    </div>
+    <div class="hint">Tapez un numéro d'article (ex: 10016) ou un mot-clé (ex: meule, disque, forêt). <span id="resultCount"></span></div>
+    <div class="results" id="results"></div>
+  </section>
+
+  <section class="panel cart-panel">
+    <div class="cart-header">
+      <h2 style="margin:0;font-size:16px;">Catalogue en cours</h2>
+      <span class="count-badge" id="cartCount">0</span>
+    </div>
+    <div class="cart-list" id="cartList">
+      <div class="empty-msg">Aucun article ajouté pour l'instant.<br>Recherchez un article à gauche pour commencer.</div>
+    </div>
+    <div>
+      <button class="clear-btn" id="clearBtn">Vider le catalogue</button>
+    </div>
+    <button class="export-btn" id="exportBtn" disabled>Exporter en PDF</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </section>
+</main>
+
+<div id="printArea"></div>
+
+<script>
+const IMG_BASE = "https://raw.githubusercontent.com/Dacunha87/tyrolit-catalogue-client/main/";
+let PRODUCTS = [];
+let PRODUCTS_BY_REF = {};
+let cart = [];
+
+const searchInput = document.getElementById('searchInput');
+const resultsEl = document.getElementById('results');
+const resultCountEl = document.getElementById('resultCount');
+const cartListEl = document.getElementById('cartList');
+const cartCountEl = document.getElementById('cartCount');
+const exportBtn = document.getElementById('exportBtn');
+const clearBtn = document.getElementById('clearBtn');
+const clientNameInput = document.getElementById('clientName');
+const statusMsg = document.getElementById('statusMsg');
+
+function imgUrl(filename) {
+  if (!filename) return placeholderImg();
+  return IMG_BASE + "img/" + encodeURIComponent(filename);
+}
+function placeholderImg() {
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#eee"/><text x="50" y="55" font-size="10" text-anchor="middle" fill="#999">Pas d\'image</text></svg>'
+  );
+}
+
+function onImgError(imgEl) {
+  imgEl.onerror = null;
+  imgEl.src = placeholderImg();
+}
+
+async function loadProducts() {
+  statusMsg.textContent = "Chargement de la base produits...";
+  try {
+    const res = await fetch('products.json');
+    PRODUCTS = await res.json();
+    PRODUCTS.forEach(p => PRODUCTS_BY_REF[p.ref] = p);
+    statusMsg.textContent = PRODUCTS.length + " articles chargés.";
+    setTimeout(() => { statusMsg.textContent = ""; }, 3000);
+  } catch (e) {
+    statusMsg.textContent = "Erreur de chargement de la base produits.";
+  }
+}
+
+function search(query) {
+  query = query.trim().toLowerCase();
+  if (!query) return [];
+  // Exact ref match first
+  const exact = PRODUCTS.filter(p => p.ref.toLowerCase() === query);
+  const partial = PRODUCTS.filter(p =>
+    p.ref.toLowerCase() !== query && (
+      p.ref.toLowerCase().includes(query) ||
+      (p.designation && p.designation.toLowerCase().includes(query)) ||
+      (p.titre && p.titre.toLowerCase().includes(query)) ||
+      (p.cat3 && p.cat3.toLowerCase().includes(query)) ||
+      (p.cat4 && p.cat4.toLowerCase().includes(query))
+    )
+  );
+  return [...exact, ...partial].slice(0, 40);
+}
+
+function renderResults() {
+  const query = searchInput.value;
+  if (!query.trim()) {
+    resultsEl.innerHTML = '';
+    resultCountEl.textContent = '';
+    return;
+  }
+  const found = search(query);
+  resultCountEl.textContent = found.length ? `(${found.length} résultat${found.length>1?'s':''})` : '(aucun résultat)';
+  resultsEl.innerHTML = found.map(p => {
+    const inCart = cart.some(c => c.ref === p.ref);
+    return `
+      <div class="product-card">
+        <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
+        <div class="product-info">
+          <div class="product-ref">${p.ref}</div>
+          <div class="product-title">${p.titre || p.designation || '(sans titre)'}</div>
+          <div class="product-sub">${p.soustitre || p.cat4 || ''}</div>
+        </div>
+        <button class="add-btn" ${inCart ? 'disabled' : ''} onclick="addToCart('${p.ref}')">${inCart ? 'Ajouté' : 'Ajouter'}</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function addToCart(ref) {
+  const p = PRODUCTS_BY_REF[ref];
+  if (!p) return;
+  if (cart.some(c => c.ref === ref)) return;
+  cart.push(p);
+  renderCart();
+  renderResults();
+  saveCart();
+}
+
+function removeFromCart(ref) {
+  cart = cart.filter(c => c.ref !== ref);
+  renderCart();
+  renderResults();
+  saveCart();
+}
+
+function renderCart() {
+  cartCountEl.textContent = cart.length;
+  exportBtn.disabled = cart.length === 0;
+  if (cart.length === 0) {
+    cartListEl.innerHTML = '<div class="empty-msg">Aucun article ajouté pour l\'instant.<br>Recherchez un article à gauche pour commencer.</div>';
+    return;
+  }
+  cartListEl.innerHTML = cart.map(p => `
+    <div class="cart-item">
+      <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
+      <div class="info">
+        <div class="ref">${p.ref}</div>
+        <div class="title">${p.titre || p.designation || ''}</div>
+      </div>
+      <button class="remove-btn" onclick="removeFromCart('${p.ref}')">Retirer</button>
+    </div>
+  `).join('');
+}
+
+function saveCart() {
+  try {
+    localStorage.setItem('tyrolit_catalog_cart', JSON.stringify(cart.map(p => p.ref)));
+    localStorage.setItem('tyrolit_catalog_client', clientNameInput.value);
+  } catch(e) {}
+}
+
+function loadCart() {
+  try {
+    const savedRefs = JSON.parse(localStorage.getItem('tyrolit_catalog_cart') || '[]');
+    cart = savedRefs.map(ref => PRODUCTS_BY_REF[ref]).filter(Boolean);
+    const savedClient = localStorage.getItem('tyrolit_catalog_client');
+    if (savedClient) clientNameInput.value = savedClient;
+    renderCart();
+  } catch(e) {}
+}
+
+function buildPrintHTML() {
+  const clientName = clientNameInput.value.trim() || "Client";
+  const dateStr = new Date().toLocaleDateString('fr-CH', { year: 'numeric', month: 'long', day: 'numeric' });
+  let html = `
+    <div class="print-page cover-page">
+      <h1>Catalogue Personnalisé</h1>
+      <div class="client-name">${clientName}</div>
+      <div class="date">Préparé le ${dateStr}</div>
+      <div style="margin-top:40px;font-size:13px;color:#888;">TYROLIT — Construction &amp; préparation de sols</div>
+    </div>
+  `;
+  cart.forEach(p => {
+    html += `
+      <div class="print-page">
+        <div class="print-header">
+          <h1>TYROLIT</h1>
+          <div style="font-size:12px;color:#888;">${clientName}</div>
+        </div>
+        <div class="print-product">
+          <img src="${imgUrl(p.image)}" onerror="this.src='${placeholderImg()}'">
+          <div class="details">
+            <div class="print-ref">Référence: ${p.ref}</div>
+            <div class="print-title">${p.titre || p.designation || ''}</div>
+            <div class="print-sub">${p.soustitre || ''}</div>
+            <div class="print-desc">${p.desc_court || ''}</div>
+            <div class="print-desc">${p.desc_long || ''}</div>
+            <div class="print-meta">
+              ${p.gamme ? 'Gamme: ' + p.gamme + '<br>' : ''}
+              ${p.cat3 ? 'Catégorie: ' + p.cat3 + '<br>' : ''}
+              ${p.spec ? 'Spécification: ' + p.spec + '<br>' : ''}
+              ${p.dimension ? 'Dimension: ' + p.dimension : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  return html;
+}
+
+exportBtn.addEventListener('click', () => {
+  document.getElementById('printArea').innerHTML = buildPrintHTML();
+  setTimeout(() => window.print(), 200);
+});
+
+clearBtn.addEventListener('click', () => {
+  if (cart.length === 0) return;
+  if (confirm('Vider tout le catalogue en cours ?')) {
+    cart = [];
+    renderCart();
+    renderResults();
+    saveCart();
+  }
+});
+
+searchInput.addEventListener('input', renderResults);
+clientNameInput.addEventListener('input', saveCart);
+
+loadProducts().then(loadCart);
+</script>
+
+</body>
+</html>
