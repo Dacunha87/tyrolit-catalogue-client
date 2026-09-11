@@ -177,11 +177,16 @@
   }
   .cart-item {
     display: flex;
-    gap: 10px;
-    align-items: center;
+    flex-direction: column;
+    gap: 6px;
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 8px;
+  }
+  .cart-item-top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
   }
   .cart-item img {
     width: 44px;
@@ -203,6 +208,71 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .price-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+    padding-left: 54px;
+    flex-wrap: wrap;
+  }
+  .price-row label {
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .price-row input {
+    width: 64px;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 12px;
+  }
+  .price-row .net-value {
+    font-weight: 700;
+    color: var(--tyrolit-blue);
+    margin-left: auto;
+  }
+  .global-discount {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f4f6f8;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .price-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text);
+    margin: 10px 0;
+    cursor: pointer;
+    user-select: none;
+  }
+  .price-toggle input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  .global-discount input {
+    width: 60px;
+    padding: 5px 6px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 13px;
+  }
+  .cart-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 2px;
+    border-top: 1px solid var(--border);
+    color: var(--tyrolit-blue);
   }
   .remove-btn {
     background: none;
@@ -301,6 +371,29 @@
     .print-sub { font-size: 14px; color: #555; margin-bottom: 12px; }
     .print-desc { font-size: 13px; line-height: 1.6; margin-bottom: 10px; }
     .print-meta { font-size: 12px; color: #666; margin-top: 10px; }
+    .print-price-box {
+      margin-top: 16px;
+      display: inline-block;
+      border: 2px solid #003064;
+      border-radius: 8px;
+      padding: 10px 18px;
+    }
+    .print-price-box .net { font-size: 22px; font-weight: 800; color: #003064; }
+    .print-price-box .brut-remise { font-size: 12px; color: #666; margin-top: 2px; }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 16px;
+    }
+    .summary-table th, .summary-table td {
+      border-bottom: 1px solid #ddd;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .summary-table th { color: #003064; }
+    .summary-table td.num { text-align: right; }
+    .summary-total-row td { font-weight: 800; color: #003064; border-top: 2px solid #003064; }
     .cover-page {
       display: flex;
       flex-direction: column;
@@ -357,8 +450,22 @@
       <h2 style="margin:0;font-size:16px;">Catalogue en cours</h2>
       <span class="count-badge" id="cartCount">0</span>
     </div>
+    <label class="price-toggle">
+      <input type="checkbox" id="showPricesToggle">
+      <span>Afficher les prix</span>
+    </label>
+    <div class="global-discount" id="globalDiscountRow" style="display:none;">
+      <span>Remise générale :</span>
+      <input type="number" id="globalDiscount" min="0" max="100" step="1" value="0">
+      <span>%</span>
+      <span style="color:#999;font-size:11px;">(appliquée à tous les articles sans remise propre)</span>
+    </div>
     <div class="cart-list" id="cartList">
       <div class="empty-msg">Aucun article ajouté pour l'instant.<br>Recherchez un article à gauche pour commencer.</div>
+    </div>
+    <div class="cart-total" id="cartTotal" style="display:none;">
+      <span>Total net</span>
+      <span id="cartTotalValue">0.00 CHF</span>
     </div>
     <div>
       <button class="clear-btn" id="clearBtn">Vider le catalogue</button>
@@ -456,11 +563,17 @@ function renderResults() {
   }).join('');
 }
 
+const globalDiscountInput = document.getElementById('globalDiscount');
+const globalDiscountRow = document.getElementById('globalDiscountRow');
+const showPricesToggle = document.getElementById('showPricesToggle');
+const cartTotalEl = document.getElementById('cartTotal');
+const cartTotalValueEl = document.getElementById('cartTotalValue');
+
 function addToCart(ref) {
   const p = PRODUCTS_BY_REF[ref];
   if (!p) return;
   if (cart.some(c => c.ref === ref)) return;
-  cart.push(p);
+  cart.push({ ref: ref, brut: null, remise: null });
   renderCart();
   renderResults();
   saveCart();
@@ -473,38 +586,96 @@ function removeFromCart(ref) {
   saveCart();
 }
 
+function computeNet(brut, remise) {
+  const b = parseFloat(brut);
+  const r = parseFloat(remise);
+  if (isNaN(b)) return null;
+  const effectiveR = isNaN(r) ? 0 : r;
+  return b * (1 - effectiveR / 100);
+}
+
+function updateItemPrice(ref, field, value) {
+  const item = cart.find(c => c.ref === ref);
+  if (!item) return;
+  item[field] = value === '' ? null : value;
+  renderCart();
+  saveCart();
+}
+
 function renderCart() {
   cartCountEl.textContent = cart.length;
   exportBtn.disabled = cart.length === 0;
+  const showPrices = showPricesToggle.checked;
+  globalDiscountRow.style.display = showPrices ? 'flex' : 'none';
   if (cart.length === 0) {
     cartListEl.innerHTML = '<div class="empty-msg">Aucun article ajouté pour l\'instant.<br>Recherchez un article à gauche pour commencer.</div>';
+    cartTotalEl.style.display = 'none';
     return;
   }
-  cartListEl.innerHTML = cart.map(p => `
-    <div class="cart-item">
-      <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
-      <div class="info">
-        <div class="ref">${p.ref}</div>
-        <div class="title">${p.titre || p.designation || ''}</div>
+  const globalDiscount = globalDiscountInput.value;
+  let total = 0;
+  let hasAnyPrice = false;
+  cartListEl.innerHTML = cart.map(c => {
+    const p = PRODUCTS_BY_REF[c.ref];
+    if (!p) return '';
+    const effectiveRemise = (c.remise !== null && c.remise !== '') ? c.remise : globalDiscount;
+    const net = computeNet(c.brut, effectiveRemise);
+    if (net !== null) { total += net; hasAnyPrice = true; }
+    return `
+      <div class="cart-item">
+        <div class="cart-item-top">
+          <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
+          <div class="info">
+            <div class="ref">${p.ref}</div>
+            <div class="title">${p.titre || p.designation || ''}</div>
+          </div>
+          <button class="remove-btn" onclick="removeFromCart('${p.ref}')">Retirer</button>
+        </div>
+        ${showPrices ? `
+        <div class="price-row">
+          <label>Brut CHF</label>
+          <input type="number" step="0.01" min="0" value="${c.brut !== null ? c.brut : ''}"
+                 placeholder="0.00" onchange="updateItemPrice('${p.ref}','brut',this.value)">
+          <label>Remise %</label>
+          <input type="number" step="1" min="0" max="100" value="${c.remise !== null ? c.remise : ''}"
+                 placeholder="${globalDiscount || 0}" onchange="updateItemPrice('${p.ref}','remise',this.value)">
+          <span class="net-value">${net !== null ? net.toFixed(2) + ' CHF' : '—'}</span>
+        </div>
+        ` : ''}
       </div>
-      <button class="remove-btn" onclick="removeFromCart('${p.ref}')">Retirer</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+  if (showPrices && hasAnyPrice) {
+    cartTotalEl.style.display = 'flex';
+    cartTotalValueEl.textContent = total.toFixed(2) + ' CHF';
+  } else {
+    cartTotalEl.style.display = 'none';
+  }
 }
 
 function saveCart() {
   try {
-    localStorage.setItem('tyrolit_catalog_cart', JSON.stringify(cart.map(p => p.ref)));
+    localStorage.setItem('tyrolit_catalog_cart', JSON.stringify(cart));
     localStorage.setItem('tyrolit_catalog_client', clientNameInput.value);
+    localStorage.setItem('tyrolit_catalog_discount', globalDiscountInput.value);
+    localStorage.setItem('tyrolit_catalog_showprices', showPricesToggle.checked ? '1' : '0');
   } catch(e) {}
 }
 
 function loadCart() {
   try {
-    const savedRefs = JSON.parse(localStorage.getItem('tyrolit_catalog_cart') || '[]');
-    cart = savedRefs.map(ref => PRODUCTS_BY_REF[ref]).filter(Boolean);
+    const saved = JSON.parse(localStorage.getItem('tyrolit_catalog_cart') || '[]');
+    // Support both old format (array of refs) and new format (array of {ref,brut,remise})
+    cart = saved.map(item => {
+      if (typeof item === 'string') return { ref: item, brut: null, remise: null };
+      return item;
+    }).filter(c => PRODUCTS_BY_REF[c.ref]);
     const savedClient = localStorage.getItem('tyrolit_catalog_client');
     if (savedClient) clientNameInput.value = savedClient;
+    const savedDiscount = localStorage.getItem('tyrolit_catalog_discount');
+    if (savedDiscount) globalDiscountInput.value = savedDiscount;
+    const savedShowPrices = localStorage.getItem('tyrolit_catalog_showprices');
+    showPricesToggle.checked = savedShowPrices === '1';
     renderCart();
   } catch(e) {}
 }
@@ -512,6 +683,20 @@ function loadCart() {
 function buildPrintHTML() {
   const clientName = clientNameInput.value.trim() || "Client";
   const dateStr = new Date().toLocaleDateString('fr-CH', { year: 'numeric', month: 'long', day: 'numeric' });
+  const globalDiscount = globalDiscountInput.value;
+  const showPrices = showPricesToggle.checked;
+
+  const items = cart.map(c => {
+    const p = PRODUCTS_BY_REF[c.ref];
+    const effectiveRemise = (c.remise !== null && c.remise !== '') ? c.remise : globalDiscount;
+    const net = showPrices ? computeNet(c.brut, effectiveRemise) : null;
+    return { p, brut: c.brut, remise: effectiveRemise, net };
+  }).filter(it => it.p);
+
+  let total = 0;
+  let hasAnyPrice = false;
+  items.forEach(it => { if (it.net !== null) { total += it.net; hasAnyPrice = true; } });
+
   let html = `
     <div class="print-page cover-page">
       <img class="cover-logo" src="${IMG_BASE}tyrolit-logo.svg" alt="TYROLIT">
@@ -521,7 +706,42 @@ function buildPrintHTML() {
       <div style="margin-top:40px;font-size:13px;color:#888;">Construction &amp; préparation de sols — Suisse romande</div>
     </div>
   `;
-  cart.forEach(p => {
+
+  if (hasAnyPrice) {
+    html += `
+      <div class="print-page">
+        <div class="print-header">
+          <img class="print-logo" src="${IMG_BASE}tyrolit-logo.svg" alt="TYROLIT">
+          <div style="font-size:12px;color:#888;">${clientName}</div>
+        </div>
+        <h2 style="color:#003064;">Récapitulatif</h2>
+        <table class="summary-table">
+          <thead>
+            <tr><th>Référence</th><th>Désignation</th><th class="num">Brut CHF</th><th class="num">Remise</th><th class="num">Net CHF</th></tr>
+          </thead>
+          <tbody>
+            ${items.map(it => `
+              <tr>
+                <td>${it.p.ref}</td>
+                <td>${it.p.titre || it.p.designation || ''}</td>
+                <td class="num">${it.brut !== null && it.brut !== '' ? parseFloat(it.brut).toFixed(2) : '—'}</td>
+                <td class="num">${it.remise !== null && it.remise !== '' ? it.remise + '%' : '—'}</td>
+                <td class="num">${it.net !== null ? it.net.toFixed(2) : '—'}</td>
+              </tr>
+            `).join('')}
+            <tr class="summary-total-row">
+              <td colspan="4">Total net</td>
+              <td class="num">${total.toFixed(2)} CHF</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  items.forEach(it => {
+    const p = it.p;
+    const hasPrice = it.net !== null;
     html += `
       <div class="print-page">
         <div class="print-header">
@@ -542,6 +762,12 @@ function buildPrintHTML() {
               ${p.spec ? 'Spécification: ' + p.spec + '<br>' : ''}
               ${p.dimension ? 'Dimension: ' + p.dimension : ''}
             </div>
+            ${hasPrice ? `
+              <div class="print-price-box">
+                <div class="net">${it.net.toFixed(2)} CHF</div>
+                <div class="brut-remise">Prix brut: ${parseFloat(it.brut).toFixed(2)} CHF — Remise: ${it.remise}%</div>
+              </div>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -567,6 +793,8 @@ clearBtn.addEventListener('click', () => {
 
 searchInput.addEventListener('input', renderResults);
 clientNameInput.addEventListener('input', saveCart);
+globalDiscountInput.addEventListener('input', () => { renderCart(); saveCart(); });
+showPricesToggle.addEventListener('change', () => { renderCart(); saveCart(); });
 
 loadProducts().then(loadCart);
 </script>
