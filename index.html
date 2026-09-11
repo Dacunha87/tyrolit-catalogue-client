@@ -526,6 +526,47 @@
       padding-left: 0;
     }
   }
+
+  .manual-add-row { margin: 8px 0 10px 0; }
+  .manual-add-btn {
+    width: 100%; padding: 8px 10px; background: #f4f4f4;
+    border: 1px dashed #bbb; border-radius: 6px; color: #555;
+    font-size: 13px; cursor: pointer;
+  }
+  .manual-add-btn:hover { background: #ececec; border-color: #999; }
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45); z-index: 1000;
+    align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 10px; width: 100%; max-width: 480px;
+    max-height: 90vh; overflow-y: auto; padding: 20px;
+  }
+  .modal-box h3 { margin: 0 0 14px 0; font-size: 17px; }
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+  .modal-field input, .modal-field textarea {
+    width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc;
+    border-radius: 6px; font-size: 14px; font-family: inherit;
+  }
+  .modal-field textarea { min-height: 60px; resize: vertical; }
+  .modal-field-row { display: flex; gap: 10px; }
+  .modal-field-row .modal-field { flex: 1; }
+  .modal-img-preview {
+    width: 80px; height: 80px; object-fit: contain; border: 1px solid #eee;
+    border-radius: 6px; margin-top: 6px; display: none;
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-actions button { flex: 1; padding: 10px; border-radius: 6px; border: none; font-size: 14px; cursor: pointer; }
+  .modal-cancel-btn { background: #eee; color: #444; }
+  .modal-save-btn { background: #003057; color: #fff; }
+  .modal-error { color: #c0392b; font-size: 12px; margin-top: 4px; display: none; }
+  .manual-tag {
+    display: inline-block; font-size: 10px; background: #fff3cd; color: #856404;
+    padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle;
+  }
 </style>
 </head>
 <body>
@@ -551,6 +592,9 @@
       <input type="text" id="searchInput" placeholder="Rechercher par référence, désignation ou mot-clé..." autofocus>
     </div>
     <div class="hint">Tapez un numéro d'article (ex: 10016) ou un mot-clé (ex: meule, disque, forêt). <span id="resultCount"></span></div>
+    <div class="manual-add-row">
+      <button type="button" class="manual-add-btn" id="openManualAddBtn" onclick="openManualAddModal()">+ Ajouter un article manuellement</button>
+    </div>
     <div class="results" id="results"></div>
   </section>
 
@@ -588,6 +632,52 @@
     <div class="status-msg" id="statusMsg"></div>
   </section>
 </main>
+
+<div class="modal-overlay" id="manualAddOverlay">
+  <div class="modal-box">
+    <h3>Ajouter un article manuellement</h3>
+    <div class="modal-field">
+      <label>Numéro d'article *</label>
+      <input type="text" id="maRef" placeholder="ex: 11005400">
+    </div>
+    <div class="modal-field">
+      <label>Titre *</label>
+      <input type="text" id="maTitre" placeholder="ex: Ponceuse de sol FGE515M3V 400V Premium">
+    </div>
+    <div class="modal-field">
+      <label>Sous-titre</label>
+      <input type="text" id="maSoustitre" placeholder="ex: pour béton et chape">
+    </div>
+    <div class="modal-field-row">
+      <div class="modal-field">
+        <label>Dimension</label>
+        <input type="text" id="maDimension" placeholder="ex: 515 mm">
+      </div>
+      <div class="modal-field">
+        <label>Prix net (facultatif)</label>
+        <input type="number" id="maPrix" step="0.01" placeholder="ex: 3200.00">
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Spécifications</label>
+      <input type="text" id="maSpec" placeholder="ex: C 800 - BE11">
+    </div>
+    <div class="modal-field">
+      <label>Descriptif</label>
+      <textarea id="maDescription" placeholder="Description de l'article..."></textarea>
+    </div>
+    <div class="modal-field">
+      <label>Photo (facultatif)</label>
+      <input type="file" id="maImageFile" accept="image/*" onchange="onManualImageSelected(event)">
+      <img class="modal-img-preview" id="maImagePreview">
+    </div>
+    <div class="modal-error" id="maError"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel-btn" onclick="closeManualAddModal()">Annuler</button>
+      <button type="button" class="modal-save-btn" onclick="saveManualArticle()">Ajouter au catalogue</button>
+    </div>
+  </div>
+</div>
 
 <div id="printArea"></div>
 
@@ -638,6 +728,7 @@ function pDescLong(p) {
 
 function imgUrl(filename) {
   if (!filename) return placeholderImg();
+  if (filename.startsWith('data:image')) return filename;
   return IMG_BASE + "img/" + encodeURIComponent(filename);
 }
 function placeholderImg() {
@@ -657,12 +748,120 @@ async function loadProducts() {
     const res = await fetch('products.json');
     PRODUCTS = await res.json();
     PRODUCTS.forEach(p => PRODUCTS_BY_REF[p.ref] = p);
+    loadManualProducts();
     statusMsg.textContent = PRODUCTS.length + " articles chargés.";
     setTimeout(() => { statusMsg.textContent = ""; }, 3000);
   } catch (e) {
     statusMsg.textContent = "Erreur de chargement de la base produits.";
   }
 }
+
+// ===== Ajout manuel d'articles (stockage local navigateur uniquement) =====
+const MANUAL_PRODUCTS_KEY = 'tyrolit_catalog_manual_products';
+let manualImageDataUrl = null;
+
+function loadManualProducts() {
+  try {
+    const raw = localStorage.getItem(MANUAL_PRODUCTS_KEY);
+    if (!raw) return;
+    const manualList = JSON.parse(raw);
+    manualList.forEach(p => {
+      if (!PRODUCTS_BY_REF[p.ref]) {
+        PRODUCTS.push(p);
+        PRODUCTS_BY_REF[p.ref] = p;
+      }
+    });
+  } catch (e) {}
+}
+
+function saveManualProductsToStorage() {
+  const manualList = PRODUCTS.filter(p => p.manual === true);
+  try { localStorage.setItem(MANUAL_PRODUCTS_KEY, JSON.stringify(manualList)); } catch (e) {}
+}
+
+function openManualAddModal() {
+  document.getElementById('maRef').value = '';
+  document.getElementById('maTitre').value = '';
+  document.getElementById('maSoustitre').value = '';
+  document.getElementById('maDimension').value = '';
+  document.getElementById('maSpec').value = '';
+  document.getElementById('maPrix').value = '';
+  document.getElementById('maDescription').value = '';
+  document.getElementById('maImageFile').value = '';
+  document.getElementById('maImagePreview').style.display = 'none';
+  document.getElementById('maError').style.display = 'none';
+  manualImageDataUrl = null;
+  document.getElementById('manualAddOverlay').classList.add('open');
+}
+
+function closeManualAddModal() {
+  document.getElementById('manualAddOverlay').classList.remove('open');
+}
+
+function onManualImageSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    manualImageDataUrl = e.target.result;
+    const preview = document.getElementById('maImagePreview');
+    preview.src = manualImageDataUrl;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveManualArticle() {
+  const ref = document.getElementById('maRef').value.trim();
+  const titre = document.getElementById('maTitre').value.trim();
+  const soustitre = document.getElementById('maSoustitre').value.trim();
+  const dimension = document.getElementById('maDimension').value.trim();
+  const spec = document.getElementById('maSpec').value.trim();
+  const prixRaw = document.getElementById('maPrix').value.trim();
+  const description = document.getElementById('maDescription').value.trim();
+  const errorEl = document.getElementById('maError');
+
+  if (!ref || !titre) {
+    errorEl.textContent = "Le numéro d'article et le titre sont obligatoires.";
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (PRODUCTS_BY_REF[ref]) {
+    errorEl.textContent = "Un article avec ce numéro existe déjà dans le catalogue.";
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const newProduct = {
+    ref: ref,
+    designation: titre,
+    titre: titre,
+    soustitre: soustitre,
+    desc_court: description,
+    desc_long: description,
+    image: manualImageDataUrl || '',
+    gamme: '',
+    cat1: '', cat2: '', cat3: '', cat4: '',
+    dimension: dimension,
+    spec: spec,
+    titre_de: '', soustitre_de: '', desc_court_de: '', desc_long_de: '',
+    manual: true,
+    manualPrixNet: prixRaw !== '' ? parseFloat(prixRaw) : null
+  };
+
+  PRODUCTS.push(newProduct);
+  PRODUCTS_BY_REF[ref] = newProduct;
+  saveManualProductsToStorage();
+
+  closeManualAddModal();
+  addToCart(ref);
+  if (newProduct.manualPrixNet !== null) {
+    updateItemPrice(ref, 'net', String(newProduct.manualPrixNet));
+  }
+  statusMsg.textContent = "Article " + ref + " ajouté au catalogue (local).";
+  setTimeout(() => { statusMsg.textContent = ""; }, 3000);
+}
+
 
 function search(query) {
   query = query.trim().toLowerCase();
@@ -697,7 +896,7 @@ function renderResults() {
       <div class="product-card">
         <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
         <div class="product-info">
-          <div class="product-ref">${p.ref}</div>
+          <div class="product-ref">${p.ref}${p.manual ? '<span class="manual-tag">Ajouté manuellement</span>' : ''}</div>
           <div class="product-title">${pTitre(p) || '(sans titre)'}</div>
           <div class="product-sub">${pSoustitre(p) || p.cat4 || ''}</div>
         </div>
@@ -815,7 +1014,7 @@ function renderCart() {
         <div class="cart-item-top">
           <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
           <div class="info">
-            <div class="ref">${p.ref}</div>
+            <div class="ref">${p.ref}${p.manual ? '<span class="manual-tag">Manuel</span>' : ''}</div>
             <div class="title">${pTitre(p)}</div>
           </div>
           <button class="remove-btn" onclick="removeFromCart('${p.ref}')">Retirer</button>
@@ -916,13 +1115,13 @@ function buildPrintHTML() {
                 <div class="details">
                   <div class="print-ref">Référence: ${p.ref}</div>
                   ${p.dimension ? `<div class="print-dimension">Dimension: ${p.dimension}</div>` : ''}
+                  ${p.spec ? `<div class="print-dimension">Spécification: ${p.spec}</div>` : ''}
                   <div class="print-title">${pTitre(p)}</div>
                   <div class="print-sub">${pSoustitre(p)}</div>
                   <div class="print-desc">${pDescCourt(p)}</div>
                   <div class="print-meta">
                     ${p.gamme ? 'Gamme: ' + p.gamme + '<br>' : ''}
                     ${p.cat3 ? 'Catégorie: ' + p.cat3 + '<br>' : ''}
-                    ${p.spec ? 'Spécification: ' + p.spec : ''}
                   </div>
                   ${hasPrice ? `
                     <div class="print-price-box">
