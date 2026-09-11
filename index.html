@@ -575,8 +575,8 @@
   <div class="brand">
     <img class="tyrolit-logo" src="https://raw.githubusercontent.com/Dacunha87/tyrolit-catalogue-client/main/tyrolit-logo.svg" alt="TYROLIT">
     <div>
-      <h1>Catalogue Client</h1>
-      <div class="subtitle">Construction &amp; préparation de sols — Suisse romande</div>
+      <h1 id="uiTitle">Catalogue Client</h1>
+      <div class="subtitle" id="uiSubtitle">Construction &amp; préparation de sols — Suisse romande</div>
     </div>
   </div>
   <div class="lang-switch" id="langSwitch">
@@ -591,90 +591,90 @@
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="Rechercher par référence, désignation ou mot-clé..." autofocus>
     </div>
-    <div class="hint">Tapez un numéro d'article (ex: 10016) ou un mot-clé (ex: meule, disque, forêt). <span id="resultCount"></span></div>
+    <div class="hint"><span id="uiHintText">Tapez un numéro d'article (ex: 10016) ou un mot-clé (ex: meule, disque, forêt).</span> <span id="resultCount"></span></div>
     <div class="manual-add-row">
-      <button type="button" class="manual-add-btn" id="openManualAddBtn" onclick="openManualAddModal()">+ Ajouter un article manuellement</button>
+      <button type="button" class="manual-add-btn" id="openManualAddBtn" onclick="openManualAddModal()">+ <span id="uiManualAddBtn">Ajouter un article manuellement</span></button>
     </div>
     <div class="results" id="results"></div>
   </section>
 
   <section class="panel cart-panel">
     <div class="cart-header">
-      <h2 style="margin:0;font-size:16px;">Catalogue en cours</h2>
+      <h2 style="margin:0;font-size:16px;" id="uiCartTitle">Catalogue en cours</h2>
       <span class="count-badge" id="cartCount">0</span>
     </div>
     <label class="price-toggle">
       <input type="checkbox" id="showPricesToggle">
-      <span>Afficher les prix</span>
+      <span id="uiShowPrices">Afficher les prix</span>
     </label>
     <div class="price-mode-row" id="priceModeRow" style="display:none;">
-      <span>Mode :</span>
-      <button type="button" class="mode-btn active" id="modeDiscountBtn" onclick="setPriceMode('discount')">Brut + remise</button>
-      <button type="button" class="mode-btn" id="modeNetBtn" onclick="setPriceMode('net')">Prix net direct</button>
+      <span id="uiModeLabel">Mode :</span>
+      <button type="button" class="mode-btn active" id="modeDiscountBtn" onclick="setPriceMode('discount')"><span id="uiModeDiscount">Brut + remise</span></button>
+      <button type="button" class="mode-btn" id="modeNetBtn" onclick="setPriceMode('net')"><span id="uiModeNet">Prix net direct</span></button>
     </div>
     <div class="global-discount" id="globalDiscountRow" style="display:none;">
-      <span>Remise générale :</span>
+      <span id="uiGlobalDiscountLabel">Remise générale :</span>
       <input type="number" id="globalDiscount" min="0" max="100" step="1" value="0">
       <span>%</span>
-      <span style="color:#999;font-size:11px;">(appliquée à tous les articles sans remise propre)</span>
+      <span style="color:#999;font-size:11px;" id="uiGlobalDiscountNote">(appliquée à tous les articles sans remise propre)</span>
     </div>
     <div class="cart-list" id="cartList">
-      <div class="empty-msg">Aucun article ajouté pour l'instant.<br>Recherchez un article à gauche pour commencer.</div>
+      <div class="empty-msg" id="uiEmptyMsg">Aucun article ajouté pour l'instant.<br>Recherchez un article à gauche pour commencer.</div>
     </div>
     <div class="cart-total" id="cartTotal" style="display:none;">
-      <span>Total net</span>
+      <span id="uiTotalNetLabel">Total net</span>
       <span id="cartTotalValue">0.00 CHF</span>
     </div>
     <div>
-      <button class="clear-btn" id="clearBtn">Vider le catalogue</button>
+      <button class="clear-btn" id="clearBtn"><span id="uiClearBtn">Vider le catalogue</span></button>
     </div>
-    <button class="export-btn" id="exportBtn" disabled>Exporter en PDF</button>
+    <button class="export-btn" id="exportBtn" disabled><span id="uiExportBtn">Exporter en PDF</span></button>
     <div class="status-msg" id="statusMsg"></div>
   </section>
 </main>
 
 <div class="modal-overlay" id="manualAddOverlay">
   <div class="modal-box">
-    <h3>Ajouter un article manuellement</h3>
+    <h3 id="uiModalTitle">Ajouter un article manuellement</h3>
     <div class="modal-field">
-      <label>Numéro d'article *</label>
+      <label id="uiLabelRef">Numéro d'article *</label>
       <input type="text" id="maRef" placeholder="ex: 11005400">
     </div>
     <div class="modal-field">
-      <label>Titre *</label>
+      <label id="uiLabelTitre">Titre *</label>
       <input type="text" id="maTitre" placeholder="ex: Ponceuse de sol FGE515M3V 400V Premium">
     </div>
     <div class="modal-field">
-      <label>Sous-titre</label>
+      <label id="uiLabelSoustitre">Sous-titre</label>
       <input type="text" id="maSoustitre" placeholder="ex: pour béton et chape">
     </div>
     <div class="modal-field-row">
       <div class="modal-field">
-        <label>Dimension</label>
+        <label id="uiLabelDimension">Dimension</label>
         <input type="text" id="maDimension" placeholder="ex: 515 mm">
       </div>
       <div class="modal-field">
-        <label>Prix net (facultatif)</label>
+        <label id="uiLabelPrix">Prix net (facultatif)</label>
         <input type="number" id="maPrix" step="0.01" placeholder="ex: 3200.00">
       </div>
     </div>
     <div class="modal-field">
-      <label>Spécifications</label>
+      <label id="uiLabelSpec">Spécifications</label>
       <input type="text" id="maSpec" placeholder="ex: C 800 - BE11">
     </div>
     <div class="modal-field">
-      <label>Descriptif</label>
+      <label id="uiLabelDescriptif">Descriptif</label>
       <textarea id="maDescription" placeholder="Description de l'article..."></textarea>
     </div>
     <div class="modal-field">
-      <label>Photo (facultatif)</label>
+      <label id="uiLabelPhoto">Photo (facultatif)</label>
       <input type="file" id="maImageFile" accept="image/*" onchange="onManualImageSelected(event)">
       <img class="modal-img-preview" id="maImagePreview">
     </div>
     <div class="modal-error" id="maError"></div>
     <div class="modal-actions">
-      <button type="button" class="modal-cancel-btn" onclick="closeManualAddModal()">Annuler</button>
-      <button type="button" class="modal-save-btn" onclick="saveManualArticle()">Ajouter au catalogue</button>
+      <button type="button" class="modal-cancel-btn" onclick="closeManualAddModal()"><span id="uiCancelBtn">Annuler</span></button>
+      <button type="button" class="modal-save-btn" onclick="saveManualArticle()"><span id="uiSaveBtn">Ajouter au catalogue</span></button>
     </div>
   </div>
 </div>
@@ -700,10 +700,139 @@ const statusMsg = document.getElementById('statusMsg');
 const langFrBtn = document.getElementById('langFrBtn');
 const langDeBtn = document.getElementById('langDeBtn');
 
+const UI_TEXT = {
+  fr: {
+    subtitle: "Construction & préparation de sols — Suisse romande",
+    clientPlaceholder: "Nom du client...",
+    searchPlaceholder: "Rechercher par référence, désignation ou mot-clé...",
+    hintText: "Tapez un numéro d'article (ex: 10016) ou un mot-clé (ex: meule, disque, forêt).",
+    manualAddBtn: "Ajouter un article manuellement",
+    cartTitle: "Catalogue en cours",
+    showPrices: "Afficher les prix",
+    modeLabel: "Mode :",
+    modeDiscount: "Brut + remise",
+    modeNet: "Prix net direct",
+    globalDiscountLabel: "Remise générale :",
+    globalDiscountNote: "(appliquée à tous les articles sans remise propre)",
+    emptyMsg: "Aucun article ajouté pour l'instant.<br>Recherchez un article à gauche pour commencer.",
+    totalNetLabel: "Total net",
+    clearBtn: "Vider le catalogue",
+    exportBtn: "Exporter en PDF",
+    modalTitle: "Ajouter un article manuellement",
+    labelRef: "Numéro d'article *",
+    labelTitre: "Titre *",
+    labelSoustitre: "Sous-titre",
+    labelDimension: "Dimension",
+    labelPrix: "Prix net (facultatif)",
+    labelSpec: "Spécifications",
+    labelDescriptif: "Descriptif",
+    labelPhoto: "Photo (facultatif)",
+    cancelBtn: "Annuler",
+    saveBtn: "Ajouter au catalogue",
+    maRefPh: "ex: 11005400",
+    maTitrePh: "ex: Ponceuse de sol FGE515M3V 400V Premium",
+    maSoustitrePh: "ex: pour béton et chape",
+    maDimensionPh: "ex: 515 mm",
+    maPrixPh: "ex: 3200.00",
+    maSpecPh: "ex: C 800 - BE11",
+    maDescriptionPh: "Description de l'article...",
+    loadingMsg: "Chargement de la base produits...",
+    loadedMsg: " articles chargés.",
+    errorMsg: "Erreur de chargement de la base produits.",
+    confirmClear: "Vider tout le catalogue en cours ?",
+    noImage: "Pas d'image",
+    manualTagSearch: "Ajouté manuellement",
+    manualTagCart: "Manuel"
+  },
+  de: {
+    subtitle: "Bau & Bodenvorbereitung — Französische Schweiz",
+    clientPlaceholder: "Kundenname...",
+    searchPlaceholder: "Suche nach Referenz, Bezeichnung oder Stichwort...",
+    hintText: "Geben Sie eine Artikelnummer ein (z.B. 10016) oder ein Stichwort (z.B. Schleifscheibe, Trennscheibe, Bohrer).",
+    manualAddBtn: "Artikel manuell hinzufügen",
+    cartTitle: "Aktueller Katalog",
+    showPrices: "Preise anzeigen",
+    modeLabel: "Modus:",
+    modeDiscount: "Brutto + Rabatt",
+    modeNet: "Direkter Nettopreis",
+    globalDiscountLabel: "Allgemeiner Rabatt:",
+    globalDiscountNote: "(gilt für alle Artikel ohne eigenen Rabatt)",
+    emptyMsg: "Noch kein Artikel hinzugefügt.<br>Suchen Sie links nach einem Artikel, um zu beginnen.",
+    totalNetLabel: "Gesamt netto",
+    clearBtn: "Katalog leeren",
+    exportBtn: "Als PDF exportieren",
+    modalTitle: "Artikel manuell hinzufügen",
+    labelRef: "Artikelnummer *",
+    labelTitre: "Titel *",
+    labelSoustitre: "Untertitel",
+    labelDimension: "Abmessung",
+    labelPrix: "Nettopreis (optional)",
+    labelSpec: "Spezifikationen",
+    labelDescriptif: "Beschreibung",
+    labelPhoto: "Foto (optional)",
+    cancelBtn: "Abbrechen",
+    saveBtn: "Zum Katalog hinzufügen",
+    maRefPh: "z.B. 11005400",
+    maTitrePh: "z.B. Bodenschleifmaschine FGE515M3V 400V Premium",
+    maSoustitrePh: "z.B. für Beton und Estrich",
+    maDimensionPh: "z.B. 515 mm",
+    maPrixPh: "z.B. 3200.00",
+    maSpecPh: "z.B. C 800 - BE11",
+    maDescriptionPh: "Artikelbeschreibung...",
+    loadingMsg: "Produktdatenbank wird geladen...",
+    loadedMsg: " Artikel geladen.",
+    errorMsg: "Fehler beim Laden der Produktdatenbank.",
+    confirmClear: "Den gesamten aktuellen Katalog leeren?",
+    noImage: "Kein Bild",
+    manualTagSearch: "Manuell hinzugefügt",
+    manualTagCart: "Manuell"
+  }
+};
+
+function applyUiLang() {
+  const t = UI_TEXT[currentLang];
+  document.getElementById('uiSubtitle').textContent = t.subtitle;
+  clientNameInput.placeholder = t.clientPlaceholder;
+  document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+  document.getElementById('uiHintText').textContent = t.hintText;
+  document.getElementById('uiManualAddBtn').textContent = t.manualAddBtn;
+  document.getElementById('uiCartTitle').textContent = t.cartTitle;
+  document.getElementById('uiShowPrices').textContent = t.showPrices;
+  document.getElementById('uiModeLabel').textContent = t.modeLabel;
+  document.getElementById('uiModeDiscount').textContent = t.modeDiscount;
+  document.getElementById('uiModeNet').textContent = t.modeNet;
+  document.getElementById('uiGlobalDiscountLabel').textContent = t.globalDiscountLabel;
+  document.getElementById('uiGlobalDiscountNote').textContent = t.globalDiscountNote;
+  const emptyMsgEl = document.getElementById('uiEmptyMsg');
+  if (emptyMsgEl) emptyMsgEl.innerHTML = t.emptyMsg;
+  document.getElementById('uiTotalNetLabel').textContent = t.totalNetLabel;
+  document.getElementById('uiClearBtn').textContent = t.clearBtn;
+  document.getElementById('uiExportBtn').textContent = t.exportBtn;
+  document.getElementById('uiModalTitle').textContent = t.modalTitle;
+  document.getElementById('uiLabelRef').textContent = t.labelRef;
+  document.getElementById('uiLabelTitre').textContent = t.labelTitre;
+  document.getElementById('uiLabelSoustitre').textContent = t.labelSoustitre;
+  document.getElementById('uiLabelDimension').textContent = t.labelDimension;
+  document.getElementById('uiLabelPrix').textContent = t.labelPrix;
+  document.getElementById('uiLabelSpec').textContent = t.labelSpec;
+  document.getElementById('uiLabelDescriptif').textContent = t.labelDescriptif;
+  document.getElementById('uiLabelPhoto').textContent = t.labelPhoto;
+  document.getElementById('uiCancelBtn').textContent = t.cancelBtn;
+  document.getElementById('uiSaveBtn').textContent = t.saveBtn;
+  document.getElementById('maRef').placeholder = t.maRefPh;
+  document.getElementById('maTitre').placeholder = t.maTitrePh;
+  document.getElementById('maSoustitre').placeholder = t.maSoustitrePh;
+  document.getElementById('maDimension').placeholder = t.maDimensionPh;
+  document.getElementById('maPrix').placeholder = t.maPrixPh;
+  document.getElementById('maSpec').placeholder = t.maSpecPh;
+  document.getElementById('maDescription').placeholder = t.maDescriptionPh;
+}
+
 function setLang(lang) {
   currentLang = lang;
   langFrBtn.classList.toggle('active', lang === 'fr');
   langDeBtn.classList.toggle('active', lang === 'de');
+  applyUiLang();
   renderResults();
   renderCart();
   try { localStorage.setItem('tyrolit_catalog_lang', lang); } catch(e) {}
@@ -733,7 +862,7 @@ function imgUrl(filename) {
 }
 function placeholderImg() {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#eee"/><text x="50" y="55" font-size="10" text-anchor="middle" fill="#999">Pas d\'image</text></svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#eee"/><text x="50" y="55" font-size="10" text-anchor="middle" fill="#999">' + UI_TEXT[currentLang].noImage + '</text></svg>'
   );
 }
 
@@ -743,16 +872,16 @@ function onImgError(imgEl) {
 }
 
 async function loadProducts() {
-  statusMsg.textContent = "Chargement de la base produits...";
+  statusMsg.textContent = UI_TEXT[currentLang].loadingMsg;
   try {
     const res = await fetch('products.json');
     PRODUCTS = await res.json();
     PRODUCTS.forEach(p => PRODUCTS_BY_REF[p.ref] = p);
     loadManualProducts();
-    statusMsg.textContent = PRODUCTS.length + " articles chargés.";
+    statusMsg.textContent = PRODUCTS.length + UI_TEXT[currentLang].loadedMsg;
     setTimeout(() => { statusMsg.textContent = ""; }, 3000);
   } catch (e) {
-    statusMsg.textContent = "Erreur de chargement de la base produits.";
+    statusMsg.textContent = UI_TEXT[currentLang].errorMsg;
   }
 }
 
@@ -896,7 +1025,7 @@ function renderResults() {
       <div class="product-card">
         <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
         <div class="product-info">
-          <div class="product-ref">${p.ref}${p.manual ? '<span class="manual-tag">Ajouté manuellement</span>' : ''}</div>
+          <div class="product-ref">${p.ref}${p.manual ? '<span class="manual-tag">' + UI_TEXT[currentLang].manualTagSearch + '</span>' : ''}</div>
           <div class="product-title">${pTitre(p) || '(sans titre)'}</div>
           <div class="product-sub">${pSoustitre(p) || p.cat4 || ''}</div>
         </div>
@@ -1014,7 +1143,7 @@ function renderCart() {
         <div class="cart-item-top">
           <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
           <div class="info">
-            <div class="ref">${p.ref}${p.manual ? '<span class="manual-tag">Manuel</span>' : ''}</div>
+            <div class="ref">${p.ref}${p.manual ? '<span class="manual-tag">' + UI_TEXT[currentLang].manualTagCart + '</span>' : ''}</div>
             <div class="title">${pTitre(p)}</div>
           </div>
           <button class="remove-btn" onclick="removeFromCart('${p.ref}')">Retirer</button>
@@ -1068,6 +1197,7 @@ function loadCart() {
       langFrBtn.classList.toggle('active', currentLang === 'fr');
       langDeBtn.classList.toggle('active', currentLang === 'de');
     }
+    applyUiLang();
     renderCart();
   } catch(e) {}
 }
@@ -1147,7 +1277,7 @@ exportBtn.addEventListener('click', () => {
 
 clearBtn.addEventListener('click', () => {
   if (cart.length === 0) return;
-  if (confirm('Vider tout le catalogue en cours ?')) {
+  if (confirm(UI_TEXT[currentLang].confirmClear)) {
     cart = [];
     renderCart();
     renderResults();
