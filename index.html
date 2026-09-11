@@ -59,6 +59,29 @@
     font-size: 14px;
     min-width: 220px;
   }
+  .lang-switch {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .lang-btn.active {
+    background: white;
+    color: var(--tyrolit-blue);
+    opacity: 1;
+  }
   main {
     display: flex;
     gap: 16px;
@@ -405,6 +428,12 @@
       font-size: 11px;
       margin-bottom: 2px;
     }
+    .print-dimension {
+      font-weight: 600;
+      color: #333;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
     .print-title { font-size: 14px; font-weight: 700; margin: 2px 0; }
     .print-sub { font-size: 11px; color: #555; margin-bottom: 6px; }
     .print-desc { font-size: 10px; line-height: 1.4; margin-bottom: 6px; }
@@ -509,6 +538,10 @@
       <div class="subtitle">Construction &amp; préparation de sols — Suisse romande</div>
     </div>
   </div>
+  <div class="lang-switch" id="langSwitch">
+    <button type="button" class="lang-btn active" id="langFrBtn" onclick="setLang('fr')">FR</button>
+    <button type="button" class="lang-btn" id="langDeBtn" onclick="setLang('de')">DE</button>
+  </div>
   <input type="text" id="clientName" class="client-input" placeholder="Nom du client...">
 </header>
 
@@ -563,6 +596,7 @@ const IMG_BASE = "https://raw.githubusercontent.com/Dacunha87/tyrolit-catalogue-
 let PRODUCTS = [];
 let PRODUCTS_BY_REF = {};
 let cart = [];
+let currentLang = 'fr';
 
 const searchInput = document.getElementById('searchInput');
 const resultsEl = document.getElementById('results');
@@ -573,6 +607,34 @@ const exportBtn = document.getElementById('exportBtn');
 const clearBtn = document.getElementById('clearBtn');
 const clientNameInput = document.getElementById('clientName');
 const statusMsg = document.getElementById('statusMsg');
+const langFrBtn = document.getElementById('langFrBtn');
+const langDeBtn = document.getElementById('langDeBtn');
+
+function setLang(lang) {
+  currentLang = lang;
+  langFrBtn.classList.toggle('active', lang === 'fr');
+  langDeBtn.classList.toggle('active', lang === 'de');
+  renderResults();
+  renderCart();
+  try { localStorage.setItem('tyrolit_catalog_lang', lang); } catch(e) {}
+}
+
+function pTitre(p) {
+  if (currentLang === 'de') return p.titre_de || p.titre || p.designation || '';
+  return p.titre || p.designation || '';
+}
+function pSoustitre(p) {
+  if (currentLang === 'de') return p.soustitre_de || p.soustitre || '';
+  return p.soustitre || '';
+}
+function pDescCourt(p) {
+  if (currentLang === 'de') return p.desc_court_de || p.desc_court || '';
+  return p.desc_court || '';
+}
+function pDescLong(p) {
+  if (currentLang === 'de') return p.desc_long_de || p.desc_long || '';
+  return p.desc_long || '';
+}
 
 function imgUrl(filename) {
   if (!filename) return placeholderImg();
@@ -612,6 +674,7 @@ function search(query) {
       p.ref.toLowerCase().includes(query) ||
       (p.designation && p.designation.toLowerCase().includes(query)) ||
       (p.titre && p.titre.toLowerCase().includes(query)) ||
+      (p.titre_de && p.titre_de.toLowerCase().includes(query)) ||
       (p.cat3 && p.cat3.toLowerCase().includes(query)) ||
       (p.cat4 && p.cat4.toLowerCase().includes(query))
     )
@@ -635,8 +698,8 @@ function renderResults() {
         <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
         <div class="product-info">
           <div class="product-ref">${p.ref}</div>
-          <div class="product-title">${p.titre || p.designation || '(sans titre)'}</div>
-          <div class="product-sub">${p.soustitre || p.cat4 || ''}</div>
+          <div class="product-title">${pTitre(p) || '(sans titre)'}</div>
+          <div class="product-sub">${pSoustitre(p) || p.cat4 || ''}</div>
         </div>
         <button class="add-btn" ${inCart ? 'disabled' : ''} onclick="addToCart('${p.ref}')">${inCart ? 'Ajouté' : 'Ajouter'}</button>
       </div>
@@ -753,7 +816,7 @@ function renderCart() {
           <img src="${imgUrl(p.image)}" onerror="onImgError(this)" alt="${p.ref}">
           <div class="info">
             <div class="ref">${p.ref}</div>
-            <div class="title">${p.titre || p.designation || ''}</div>
+            <div class="title">${pTitre(p)}</div>
           </div>
           <button class="remove-btn" onclick="removeFromCart('${p.ref}')">Retirer</button>
         </div>
@@ -799,6 +862,12 @@ function loadCart() {
       priceMode = savedMode;
       modeDiscountBtn.classList.toggle('active', priceMode === 'discount');
       modeNetBtn.classList.toggle('active', priceMode === 'net');
+    }
+    const savedLang = localStorage.getItem('tyrolit_catalog_lang');
+    if (savedLang === 'de' || savedLang === 'fr') {
+      currentLang = savedLang;
+      langFrBtn.classList.toggle('active', currentLang === 'fr');
+      langDeBtn.classList.toggle('active', currentLang === 'de');
     }
     renderCart();
   } catch(e) {}
@@ -846,14 +915,14 @@ function buildPrintHTML() {
                 <img src="${imgUrl(p.image)}" onerror="this.src='${placeholderImg()}'">
                 <div class="details">
                   <div class="print-ref">Référence: ${p.ref}</div>
-                  <div class="print-title">${p.titre || p.designation || ''}</div>
-                  <div class="print-sub">${p.soustitre || ''}</div>
-                  <div class="print-desc">${p.desc_court || ''}</div>
+                  ${p.dimension ? `<div class="print-dimension">Dimension: ${p.dimension}</div>` : ''}
+                  <div class="print-title">${pTitre(p)}</div>
+                  <div class="print-sub">${pSoustitre(p)}</div>
+                  <div class="print-desc">${pDescCourt(p)}</div>
                   <div class="print-meta">
                     ${p.gamme ? 'Gamme: ' + p.gamme + '<br>' : ''}
                     ${p.cat3 ? 'Catégorie: ' + p.cat3 + '<br>' : ''}
-                    ${p.spec ? 'Spécification: ' + p.spec + '<br>' : ''}
-                    ${p.dimension ? 'Dimension: ' + p.dimension : ''}
+                    ${p.spec ? 'Spécification: ' + p.spec : ''}
                   </div>
                   ${hasPrice ? `
                     <div class="print-price-box">
