@@ -495,7 +495,7 @@ const statusMsg = document.getElementById('statusMsg');
 
 function imgUrl(filename) {
   if (!filename) return placeholderImg();
-  return IMG_BASE + encodeURIComponent(filename);
+  return IMG_BASE + "img/" + encodeURIComponent(filename);
 }
 function placeholderImg() {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(
