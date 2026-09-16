@@ -1259,11 +1259,7 @@ function buildPrintHTML() {
   }).filter(it => it.p);
 
   let html = `
-    <div class="print-page cover-page">
-      <img class="cover-logo" src="${IMG_BASE}tyrolit-logo.svg" alt="TYROLIT">
-      <h1>Catalogue Personnalisé</h1>
-      <div class="client-name">${clientName}</div>
-      <div class="date">Préparé le ${dateStr}</div>
+    <div class="date">Préparé le ${dateStr}</div>
       <div style="margin-top:40px;font-size:13px;color:#888;">Construction &amp; préparation de sols</div>
       <div style="margin-top:60px;font-size:10px;color:#bbb;">Application développée par Davide Da Cunha</div>
     </div>
