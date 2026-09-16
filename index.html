@@ -406,21 +406,21 @@
     .print-products-grid {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 8px;
       flex: 1;
     }
     .print-product {
       display: flex;
-      gap: 4px;
+      gap: 8px;
       align-items: flex-start;
       border: 1px solid #ddd;
       border-radius: 6px;
-      padding: 2px;
+      padding: 6px;
       flex: 1;
     }
     .print-product img {
-      width: 60px;
-      height: 60px;
+      width: 90px;
+      height: 90px;
       object-fit: contain;
       border: 1px solid #ddd;
       flex-shrink: 0;
@@ -429,28 +429,28 @@
     .print-ref {
       font-weight: 700;
       color: #003064;
-      font-size: 7px;
-      margin-bottom: 0px;
+      font-size: 11px;
+      margin-bottom: 2px;
     }
     .print-dimension {
       font-weight: 600;
       color: #333;
-      font-size: 6px;
-      margin-bottom: 0px;
+      font-size: 9px;
+      margin-bottom: 2px;
     }
-    .print-title { font-size: 9px; font-weight: 700; margin: 0px 0; }
-    .print-sub { font-size: 6px; color: #555; margin-bottom: 1px; }
-    .print-desc { font-size: 6px; line-height: 1.1; margin-bottom: 1px; }
-    .print-meta { font-size: 5px; color: #666; margin-top: 1px; }
+    .print-title { font-size: 12px; font-weight: 700; margin: 2px 0; }
+    .print-sub { font-size: 9px; color: #555; margin-bottom: 2px; }
+    .print-desc { font-size: 8px; line-height: 1.2; margin-bottom: 2px; }
+    .print-meta { font-size: 7px; color: #666; margin-top: 2px; }
     .print-price-box {
-      margin-top: 0px;
+      margin-top: 4px;
       display: inline-block;
       border: 2px solid #003064;
       border-radius: 6px;
-      padding: 5px 12px;
+      padding: 6px 14px;
     }
-    .print-price-box .net { font-size: 16px; font-weight: 800; color: #003064; }
-    .print-price-box .brut-remise { font-size: 10px; color: #666; margin-top: 1px; }
+    .print-price-box .net { font-size: 18px; font-weight: 800; color: #003064; }
+    .print-price-box .brut-remise { font-size: 11px; color: #666; margin-top: 2px; }
     .summary-table {
       width: 100%;
       border-collapse: collapse;
@@ -719,6 +719,8 @@
 </div>
 
 <div id="printArea"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
 const IMG_BASE = "https://raw.githubusercontent.com/Dacunha87/tyrolit-catalogue-client/main/";
@@ -1316,9 +1318,39 @@ function buildPrintHTML() {
   return html;
 }
 
-exportBtn.addEventListener('click', () => {
-  document.getElementById('printArea').innerHTML = buildPrintHTML();
-  setTimeout(() => window.print(), 200);
+exportBtn.addEventListener('click', async () => {
+  if (cart.length === 0) {
+    statusMsg.textContent = "Aucun article à exporter";
+    return;
+  }
+  
+  statusMsg.textContent = "Génération du PDF...";
+  
+  const printArea = document.getElementById('printArea');
+  printArea.innerHTML = buildPrintHTML();
+  
+  // Attendre que les images se chargent
+  setTimeout(async () => {
+    try {
+      // Utiliser html2pdf
+      const opt = {
+        margin: 5,
+        filename: `Catalogue-${clientNameInput.value || 'Client'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+      };
+      
+      await html2pdf().set(opt).from(printArea).save();
+      statusMsg.textContent = "✅ PDF téléchargé";
+      setTimeout(() => { statusMsg.textContent = ""; }, 3000);
+    } catch (e) {
+      console.error('PDF generation failed:', e);
+      statusMsg.textContent = "Erreur: Impossible de générer le PDF";
+      // Fallback to print
+      window.print();
+    }
+  }, 500);
 });
 
 clearBtn.addEventListener('click', () => {
