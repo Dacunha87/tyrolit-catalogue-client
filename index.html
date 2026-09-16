@@ -1250,7 +1250,7 @@ function buildPrintHTML() {
   const dateStr = new Date().toLocaleDateString('fr-CH', { year: 'numeric', month: 'long', day: 'numeric' });
   const globalDiscount = globalDiscountInput.value;
   const showPrices = showPricesToggle.checked;
-  const PRODUCTS_PER_PAGE = 3;
+  const PRODUCTS_PER_PAGE = 6;
 
   const items = cart.map(c => {
     const p = PRODUCTS_BY_REF[c.ref];
@@ -1318,39 +1318,14 @@ function buildPrintHTML() {
   return html;
 }
 
-exportBtn.addEventListener('click', async () => {
+exportBtn.addEventListener('click', () => {
   if (cart.length === 0) {
     statusMsg.textContent = "Aucun article à exporter";
     return;
   }
-  
-  statusMsg.textContent = "Génération du PDF...";
-  
-  const printArea = document.getElementById('printArea');
-  printArea.innerHTML = buildPrintHTML();
-  
-  // Attendre que les images se chargent
-  setTimeout(async () => {
-    try {
-      // Utiliser html2pdf
-      const opt = {
-        margin: 5,
-        filename: `Catalogue-${clientNameInput.value || 'Client'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-      };
-      
-      await html2pdf().set(opt).from(printArea).save();
-      statusMsg.textContent = "✅ PDF téléchargé";
-      setTimeout(() => { statusMsg.textContent = ""; }, 3000);
-    } catch (e) {
-      console.error('PDF generation failed:', e);
-      statusMsg.textContent = "Erreur: Impossible de générer le PDF";
-      // Fallback to print
-      window.print();
-    }
-  }, 500);
+
+  document.getElementById('printArea').innerHTML = buildPrintHTML();
+  setTimeout(() => window.print(), 800);
 });
 
 clearBtn.addEventListener('click', () => {
