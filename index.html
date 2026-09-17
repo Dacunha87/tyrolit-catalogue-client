@@ -1250,7 +1250,7 @@ function buildPrintHTML() {
   const dateStr = new Date().toLocaleDateString('fr-CH', { year: 'numeric', month: 'long', day: 'numeric' });
   const globalDiscount = globalDiscountInput.value;
   const showPrices = showPricesToggle.checked;
-  const PRODUCTS_PER_PAGE = 6;
+  const PRODUCTS_PER_PAGE = 5;
 
   const items = cart.map(c => {
     const p = PRODUCTS_BY_REF[c.ref];
